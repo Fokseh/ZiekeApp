@@ -221,11 +221,8 @@ public class Login extends AppCompatActivity {
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            return false;
-        } else {
-            return true;
-        }
+        return (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches());
+
 
         //return email.contains("@");
 
@@ -352,7 +349,7 @@ public class Login extends AppCompatActivity {
 
             if (success) {
                 Intent loginSuccess = new Intent(Login.this, MainActivity.class);
-                Login.this.startActivity(loginSuccess);;
+                Login.this.startActivity(loginSuccess);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
@@ -374,7 +371,7 @@ public class Login extends AppCompatActivity {
                 // TODO: Implement successful signup logic here
                 // By default we just finish the Activity and log them in automatically
                 Intent signupSuccess = new Intent(Login.this, MainActivity.class);
-                Login.this.startActivity(signupSuccess);;
+                Login.this.startActivity(signupSuccess);
             }
         }
     }
