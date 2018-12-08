@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -64,10 +65,16 @@ public class Login extends AppCompatActivity {
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    DBHandler dbHandler;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        dbHandler = new DBHandler(this,null,null,1);
+
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
 
@@ -220,8 +227,20 @@ public class Login extends AppCompatActivity {
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
+        boolean isValid = true;
 
-        return (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches());
+        if(email.isEmpty()) {
+            Log.e("Email", "Email is empty");
+            isValid = false;
+        }
+
+        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Log.e("Email", "Email is true");
+            isValid = false;
+        }
+
+
+        return isValid;//(email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches());
 
 
         //return email.contains("@");
@@ -330,16 +349,15 @@ public class Login extends AppCompatActivity {
                 return false;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
+            Users loginUser = dbHandler.getLoginUser(mEmail);
+
+                if (loginUser.getEmail().equals(mEmail)) {
                     // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
+                    return loginUser.getPassword().equals(mPassword);
                 }
-            }
 
             // TODO: register the new account here.
-            return true;
+            return false;
         }
 
         @Override

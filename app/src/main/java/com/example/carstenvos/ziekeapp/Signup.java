@@ -29,10 +29,10 @@ public class Signup extends AppCompatActivity {
         EditText validatePasswordText; // = (EditText) findViewById(R.id.input_reEnterPassword);
         Button signupButton; // = (Button) findViewById(R.id.btn_signup);
         TextView loginText; // = (TextView) findViewById(R.id.link_login);
+        DBHandler dbHandler;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
-            Log.e(TAG, "onCreate signup");
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_signup);
             //setContentView(R.layout.activity_signup);
@@ -43,7 +43,6 @@ public class Signup extends AppCompatActivity {
             signupButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.e("button","signup button called");
                     signup();
                 }
             });
@@ -61,11 +60,10 @@ public class Signup extends AppCompatActivity {
             emailText = (EditText) findViewById(R.id.input_email);
             passwordText = (EditText) findViewById(R.id.input_password);
             validatePasswordText = (EditText) findViewById(R.id.input_reEnterPassword);
+            dbHandler = new DBHandler(this,null,null,1);
         }
 
         public void signup() {
-            Log.d(TAG, "Signup");
-
             if (!validate()) {
                 onSignupFailed();
                 return;
@@ -83,20 +81,41 @@ public class Signup extends AppCompatActivity {
             String lastName = lastNameText.getText().toString();
             String email = emailText.getText().toString();
             String password = passwordText.getText().toString();
-            String validatePassword = validatePasswordText.getText().toString();
+            //String validatePassword = validatePasswordText.getText().toString();
 
             // TODO: Implement your own signup logic here.
 
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            // On complete call either onSignupSuccess or onSignupFailed
-                            // depending on success
-                            onSignupSuccess();
-                            // onSignupFailed();
-                            progressDialog.dismiss();
-                        }
-                    }, 3000);
+            Users newUser = new Users(email,password,firstName,lastName);
+
+            if (dbHandler.addUser(newUser))
+            {
+                new android.os.Handler().postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                // On complete call either onSignupSuccess or onSignupFailed
+                                // depending on success
+                                onSignupSuccess();
+                                // onSignupFailed();
+                                progressDialog.dismiss();
+                            }
+                        }, 3000);
+            }
+            else
+            {
+                new android.os.Handler().postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                // On complete call either onSignupSuccess or onSignupFailed
+                                // depending on success
+                                emailText.setError("Email already exists");
+                                emailText.requestFocus();
+                                onSignupFailed();
+                                progressDialog.dismiss();
+                            }
+                        }, 3000);
+            }
+
+
         }
 
 
