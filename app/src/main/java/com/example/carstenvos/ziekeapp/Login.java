@@ -1,24 +1,9 @@
 package com.example.carstenvos.ziekeapp;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
-
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
@@ -26,21 +11,21 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.app.ProgressDialog;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.Manifest.permission.READ_CONTACTS;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * A login screen that offers login via email/password.
  */
+
 public class Login extends AppCompatActivity {
 
     private static final int REQUEST_SIGNUP = 0;
@@ -50,42 +35,40 @@ public class Login extends AppCompatActivity {
      */
     //private static final int REQUEST_READ_CONTACTS = 0;
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
+    //Firebase instance
+    private FirebaseAuth mAuth = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
-    DBHandler dbHandler;
+    public ProgressDialog progressDialog;
 
+    /**
+     **  On Create method.
+     **/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        dbHandler = new DBHandler(this,null,null,1);
-
-        // Set up the login form.
+        //Linking UI elements.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mPasswordView = (EditText) findViewById(R.id.password);
+        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        TextView link_signup = (TextView) findViewById(R.id.link_signup);
 
+        //Initialize FirebaseAuth
+        mAuth = FirebaseAuth.getInstance();
 
         //populateAutoComplete();
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        //Setting up listeners
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                    //When enter is pressed, try to login
                     attemptLogin();
                     return true;
                 }
@@ -93,24 +76,20 @@ public class Login extends AppCompatActivity {
             }
         });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                //Try to login
                 attemptLogin();
             }
         });
-
-        TextView link_signup = (TextView) findViewById(R.id.link_signup);
 
         link_signup.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // Start the Signup activity
-                Log.e("Signup", "intent signup");
                 Intent signup = new Intent(Login.this, Signup.class);
-                Log.e("Signup", "intent created");
                 startActivityForResult(signup, REQUEST_SIGNUP);
             }
         });
@@ -164,22 +143,18 @@ public class Login extends AppCompatActivity {
     }
     */
 
-    public ProgressDialog progressDialog;
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
 
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
 
+        //Start progressDialog
         progressDialog = new ProgressDialog(Login.this,
                 R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
@@ -220,13 +195,36 @@ public class Login extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+
+            //Start Firebase authentication task
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                    // Sign in success, hide progress and start next activity
+                                Log.d("Login process", "signInWithEmail:success");
+                                showProgress(false);
+                                FirebaseUser user = mAuth.getCurrentUser();
+                                Intent loginSuccess = new Intent(Login.this, MainActivity.class);
+                                Login.this.startActivity(loginSuccess);
+                            } else {
+                                    // If sign in fails, display a message to the user.
+                                Log.w("Login process", "signInWithEmail:failure", task.getException());
+                                showProgress(false);
+                                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                                mPasswordView.requestFocus();
+                            }
+                        }
+                    });
         }
     }
 
+    /**
+     **  Checks if email is empty and matches email format
+     **/
+
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
         boolean isValid = true;
 
         if(email.isEmpty()) {
@@ -239,23 +237,21 @@ public class Login extends AppCompatActivity {
             isValid = false;
         }
 
-
-        return isValid;//(email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches());
-
-
-        //return email.contains("@");
-
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return isValid;
     }
 
     /**
-     * Shows the progress UI and hides the login form.
-     */
-    //@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+     **  Checks if password length is greater than 5 characters
+     **/
+
+    private boolean isPasswordValid(String password) {
+        return password.length() > 5;
+    }
+
+    /**
+     **  Shows the progress dialog
+     **/
+
     private void showProgress(final boolean show) {
 
         if (show) {
@@ -325,68 +321,14 @@ public class Login extends AppCompatActivity {
     */
 
     /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            Users loginUser = dbHandler.getLoginUser(mEmail);
-
-                if (loginUser.getEmail().equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return loginUser.getPassword().equals(mPassword);
-                }
-
-            // TODO: register the new account here.
-            return false;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                Intent loginSuccess = new Intent(Login.this, MainActivity.class);
-                Login.this.startActivity(loginSuccess);
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
+     **   On receiving a positive signup result starts the next activity
+     **/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_SIGNUP) {
             if (resultCode == RESULT_OK) {
 
-                // TODO: Implement successful signup logic here
                 // By default we just finish the Activity and log them in automatically
                 Intent signupSuccess = new Intent(Login.this, MainActivity.class);
                 Login.this.startActivity(signupSuccess);
