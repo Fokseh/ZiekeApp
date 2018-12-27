@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import android.support.annotation.NonNull;
 import com.google.firebase.auth.FirebaseAuth;
@@ -18,6 +20,11 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Signup extends AppCompatActivity {
 
@@ -30,8 +37,8 @@ public class Signup extends AppCompatActivity {
     EditText validatePasswordText;
     Button signupButton;
     TextView loginText;
-    private DBHandler dbHandler;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     /**
      **   On Create method. On click handlers defined here.
@@ -69,9 +76,6 @@ public class Signup extends AppCompatActivity {
                 finish();
             }
         });
-
-        //Initialise local db handler
-        dbHandler = new DBHandler(this,null,null,1);
     }
 
 
@@ -160,38 +164,6 @@ public class Signup extends AppCompatActivity {
                 }
             }
         });
-        //Local database signup logic
-        /*
-        Users newUser = new Users(email,password,firstName,lastName);
-
-        if (dbHandler.addUser(newUser))
-        {
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            // On complete call either onSignupSuccess or onSignupFailed
-                            // depending on success
-                            onSignupSuccess();
-                            // onSignupFailed();
-                            progressDialog.dismiss();
-                        }
-                    }, 3000);
-        }
-        else
-        {
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            // On complete call either onSignupSuccess or onSignupFailed
-                            // depending on success
-                            emailText.setError("Email already exists");
-                            emailText.requestFocus();
-                            onSignupFailed();
-                            progressDialog.dismiss();
-                        }
-                    }, 3000);
-        }
-        */
     }
 
     /**
@@ -199,6 +171,53 @@ public class Signup extends AppCompatActivity {
      **/
 
     public void onSignupSuccess() {
+
+        //Gets user input text
+        String firstName = firstNameText.getText().toString();
+        String lastName = lastNameText.getText().toString();
+        final String email = emailText.getText().toString();
+        String[] toastMsg = {"Ouch!","D'oh!","Ooo!","FireBase"};
+
+        //Store names and email in users Firestore db
+        Map<String, Object> user = new HashMap<>();
+        user.put("firstName", firstName);
+        user.put("lastName", lastName);
+        user.put("email", email);
+
+        db.collection("users").document(mAuth.getUid())
+                .set(user)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot added with ID: ");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+
+        //Store user specified toastMsg array for Mainactivity in Firestore db
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("tapButtonArray", toastMsg);
+
+        db.document("users/"+mAuth.getUid()+"/settings/toastMsg")
+                .set(settings)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot added with ID: ");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+
         signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
         finish();
