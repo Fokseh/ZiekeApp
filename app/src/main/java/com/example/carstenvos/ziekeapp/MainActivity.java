@@ -1,33 +1,27 @@
 package com.example.carstenvos.ziekeapp;
 
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.List;
-import java.util.Map;
+import android.widget.Toolbar;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     //Initialise variables
-    public String[] toastMsg;
-    private TextView databaseTextView;
-    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private String name = "";
+    private DrawerLayout drawer;
 
     /**
-     **  On Create method. Gets user's toast messages and user details.
+     **  On Create method. Creates views and drawer menu. Opens browse fragment if opened for the first time
      **/
 
     @Override
@@ -35,70 +29,73 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        databaseTextView = findViewById(R.id.databaseTextView);
+        //Create views and let's activity handle selected items from drawer menu
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
-        //Get user's toast messages from Firestore database
-        final DocumentReference toastMsgRef = db.document("users/"+user.getUid()+"/settings/tapButtonArray");
-        toastMsgRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+        //Create new actionbar with hamburger icon
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open,R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
-                    if (document.exists()) {
-                        List<String> group = (List<String>) document.get("toastMsg");
-                        toastMsg = group.toArray(new String[0]);
-                    } else {
-                        Log.e("Toast", "No such document");
-                    }
-                } else {
-                    Log.e("Toast", "get failed with ", task.getException());
-                }
-            }
-        });
-
-        //Get user's first name and last name from Firestore database
-        final DocumentReference userDetailsRef = db.document("users/"+user.getUid());
-        userDetailsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot userDoc = task.getResult();
-
-                    if (userDoc.exists()) {
-                        Map<String, Object> userDetails = userDoc.getData();
-                        name = userDetails.get("firstName").toString() + " " + userDetails.get("lastName").toString();
-                    } else {
-                        Log.e("User", "No such document");
-                    }
-                } else {
-                    Log.e("User", "get failed with ", task.getException());
-                }
-            }
-        });
+        //If app is opened for the first time, open the browse fragment.
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    new BrowseFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_browse);
+        }
     }
 
     /**
-     **  Perform on button tap. Show random string from array and greet user
+     * Takes selected
+     * @param menuItem
+     * and handles action for selected item.
+     */
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case R.id.nav_browse:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new BrowseFragment()).commit();
+                break;
+            case R.id.nav_recipe:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new RecipeFragment()).commit();
+                break;
+            case R.id.nav_week:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new WeekFragment()).commit();
+                break;
+            case R.id.nav_settings:
+                Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_help:
+                Toast.makeText(this, "Help", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_feedback:
+                Toast.makeText(this, "Feedback", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    /**
+     **  Close drawer on back pressed when opened.
      **/
 
-    public void onButtonTap(View v){
-        //Initialise message
-        String greeting = "Hello, ";
+    @Override
+    public void onBackPressed() {
 
-        //Show random string from array on button tap
-        int i2 = (int) Math.floor(Math.random()*toastMsg.length);
-        Toast myToast = Toast.makeText(getApplicationContext(),toastMsg[i2],Toast.LENGTH_LONG);
-        myToast.show();
-
-        //If no name has come back from Firestore show error in textview
-        //else show greeting message
-        if (name.isEmpty()){
-            databaseTextView.setText("User not retrieved from database");
-        }
-        else {
-            greeting += " " + name;
-            databaseTextView.setText(greeting);
+        if (drawer.isDrawerOpen(GravityCompat.START)){
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }
