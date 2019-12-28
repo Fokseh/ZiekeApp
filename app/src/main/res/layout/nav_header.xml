@@ -2,27 +2,42 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="176dp"
-    android:background="@color/colorAccent"
     android:gravity="bottom"
     android:orientation="vertical"
     android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+    android:background="@drawable/ic_nav_background"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    >
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@mipmap/ic_launcher_round" />
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:maxHeight="64dp"
+        android:scaleType="fitXY"
+        android:adjustViewBounds="true"
+        android:innerRadius="0dp"
+        android:src="@mipmap/ic_launcher_round"
+        android:id="@+id/userImg"
+        android:background="@drawable/round_img_shadow"
+        android:elevation="20dp"/>
 
     <TextView
+        android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:text="John Doe"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:background="@color/transparent"/>
 
     <TextView
+        android:id="@+id/userEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="foo@example.com" />
+        android:text="foo@example.com"
+        android:alpha=".6"
+        android:background="@color/transparent"/>
 
 </LinearLayout>

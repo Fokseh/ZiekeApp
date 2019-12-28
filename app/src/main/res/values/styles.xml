@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -41,5 +41,9 @@
 
     <style name="ThemeOverlay.AppCompat.Dark" parent="ThemeOverlay.AppCompat">
         <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="navDrawerTheme" parent="Widget.MaterialComponents.BottomNavigationView">
+<!--        <item name="android:colorControlHighlight">@color/Salmon</item>-->
     </style>
 </resources>

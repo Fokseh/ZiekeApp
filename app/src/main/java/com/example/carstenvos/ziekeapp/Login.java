@@ -1,8 +1,11 @@
 package com.example.carstenvos.ziekeapp;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,6 +24,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+
+import java.util.Map;
 
 /**
  * A login screen that offers login via email/password.
@@ -37,11 +46,18 @@ public class Login extends AppCompatActivity {
 
     //Firebase instance
     private FirebaseAuth mAuth = null;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private SharedPreferences sharedPref;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     public ProgressDialog progressDialog;
+
+    String firstName = "";
+    String lastName = "";
+    String loggedInEmail = "";
 
     /**
      **  On Create method.
@@ -60,6 +76,8 @@ public class Login extends AppCompatActivity {
 
         //Initialize FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
+        Context context = getApplicationContext();
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
 
         //populateAutoComplete();
 
@@ -162,7 +180,7 @@ public class Login extends AppCompatActivity {
         progressDialog.show();
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
+        final String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
@@ -204,10 +222,42 @@ public class Login extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                     // Sign in success, hide progress and start next activity
                                 Log.d("Login process", "signInWithEmail:success");
-                                showProgress(false);
                                 FirebaseUser user = mAuth.getCurrentUser();
-                                Intent loginSuccess = new Intent(Login.this, MainActivity.class);
-                                Login.this.startActivity(loginSuccess);
+
+                                final SharedPreferences.Editor editor = sharedPref.edit();
+
+                                //Get user's first name and last name from Firestore database
+                                final DocumentReference userDetailsRef = db.document("users/"+user.getUid());
+                                userDetailsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            DocumentSnapshot userDoc = task.getResult();
+
+                                            if (userDoc.exists()) {
+                                                Map<String, Object> userDetails = userDoc.getData();
+                                                firstName = userDetails.get("firstName").toString();
+                                                lastName = userDetails.get("lastName").toString();
+                                                loggedInEmail = userDetails.get("email").toString();
+
+                                                editor.putString("firstName",firstName);
+                                                editor.putString("lastName", lastName);
+                                                editor.putString("email", loggedInEmail);
+                                                editor.commit();
+                                                showProgress(false);
+
+                                                Intent loginSuccess = new Intent(Login.this, MainActivity.class);
+                                                Login.this.startActivity(loginSuccess);
+                                            } else {
+                                                Log.e("User", "No such document");
+                                            }
+                                        } else {
+                                            Log.e("User", "get failed with ", task.getException());
+                                        }
+                                    }
+                                });
+
+
                             } else {
                                     // If sign in fails, display a message to the user.
                                 Log.w("Login process", "signInWithEmail:failure", task.getException());

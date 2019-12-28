@@ -6,15 +6,18 @@
         <item
             android:id="@+id/nav_browse"
             android:icon="@drawable/ic_browse"
-            android:title="Browse" />
+            android:title="Browse"
+            android:itemBackground="@color/transparent"/>
         <item
             android:id="@+id/nav_recipe"
             android:icon="@drawable/ic_recipe"
-            android:title="My Recipies" />
+            android:title="My Recipies"
+            android:itemBackground="@color/transparent"/>
         <item
             android:id="@+id/nav_week"
             android:icon="@drawable/ic_week"
-            android:title="My Week" />
+            android:title="My Week"
+            android:itemBackground="@color/transparent"/>
     </group>
 
     <item android:title="">
