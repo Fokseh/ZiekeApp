@@ -6,18 +6,16 @@
         <item
             android:id="@+id/nav_browse"
             android:icon="@drawable/ic_browse"
-            android:title="Browse"
-            android:itemBackground="@color/transparent"/>
+            android:title="@string/menu_browse"/>
         <item
             android:id="@+id/nav_recipe"
             android:icon="@drawable/ic_recipe"
-            android:title="My Recipies"
-            android:itemBackground="@color/transparent"/>
+            android:title="@string/menu_recipies"/>
         <item
             android:id="@+id/nav_week"
             android:icon="@drawable/ic_week"
-            android:title="My Week"
-            android:itemBackground="@color/transparent"/>
+            android:title="@string/menu_week"
+            />
     </group>
 
     <item android:title="">
@@ -25,15 +23,15 @@
             <item
                 android:id="@+id/nav_settings"
                 android:icon="@drawable/ic_settings"
-                android:title="Settings" />
+                android:title="@string/menu_settings" />
             <item
                 android:id="@+id/nav_help"
                 android:icon="@drawable/ic_help"
-                android:title="Help" />
+                android:title="@string/menu_help" />
             <item
                 android:id="@+id/nav_feedback"
                 android:icon="@drawable/ic_feedback"
-                android:title="Feedback" />
+                android:title="@string/menu_feedback" />
         </menu>
     </item>
 

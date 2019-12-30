@@ -2,7 +2,6 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@android:color/holo_orange_dark</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@android:color/holo_orange_light</item>
@@ -10,7 +9,6 @@
     </style>
 
     <style name="AppThemeFullscreen" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@android:color/holo_orange_dark</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
@@ -43,7 +41,17 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="navDrawerTheme" parent="Widget.MaterialComponents.BottomNavigationView">
-<!--        <item name="android:colorControlHighlight">@color/Salmon</item>-->
+    <style name="navDrawerTheme" parent="AppTheme">
+        <!--Copied most attributes from the NavigationView Material Design styles-->
+        <item name="enforceTextAppearance">true</item>
+        <item name="itemHorizontalTranslationEnabled">false</item>
+        <item name="itemIconTint">@color/mtrl_bottom_nav_item_tint</item>
+        <item name="itemTextAppearanceInactive">?attr/textAppearanceCaption</item>
+        <item name="itemTextAppearanceActive">?attr/textAppearanceCaption</item>
+        <item name="itemTextColor">@color/mtrl_bottom_nav_item_tint</item>
+        <item name="elevation">@dimen/design_bottom_navigation_elevation</item>
+        <item name="itemIconSize">@dimen/design_bottom_navigation_icon_size</item>
+        <item name="labelVisibilityMode">auto</item>
+        <item name="itemBackground">@drawable/selector_nav_drawer</item>
     </style>
 </resources>
